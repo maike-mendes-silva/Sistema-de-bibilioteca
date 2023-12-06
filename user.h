@@ -1,101 +1,128 @@
 #ifndef USER_H
 #define USER_H
 #define MAX 51
+#define CPF_MAX 15
 
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
-typedef struct user{
-	int id;
-	char name[MAX];
-	char cpf[15];
-	struct user *next;
-} User;
-
-int getLastIdUser(User *list){
+int getLastIdUser(FILE *userFile){
 	
-	for(; list->next != NULL; list = list->next);
-	return (list->id + 1);
+	int id = 0;
+	rewind(userFile);
+	while(fscanf(userFile, "%d '%*[^']' '%*[^']'\n", &id) != EOF);
+	return (id + 1);
 	
 }
 
-void insertUser(User **list, char name[], char cpf[]){
+void insertUser(FILE **userFile, char name[], char cpf[]){
 	
 	printf("\n");
-	User *newUser = (User *) malloc(sizeof(User));
-	if(newUser == NULL){
-		printf("Erro ao cadastrar usuario.\n");
-		printf("Falha na alocacao de memoria.\n");
+	*userFile = fopen("users.txt", "a+");
+	if(*userFile == NULL){
+		printf("Erro na abertura do arquivo.\n");
 		return;
 	}
-	if(*list == NULL)
-		newUser->id = 1;
-	else{
-		int id = getLastIdUser(*list);
-		newUser->id = id;
-	}
-	strcpy(newUser->name, name);
-	strcpy(newUser->cpf, cpf);
-	newUser->next = *list;
-	*list = newUser;
+	int id;
+	id = getLastIdUser(*userFile);
+	fprintf(*userFile, "%d '%s' '%s'\n", id, name, cpf);
+	fclose(*userFile);
 	printf("Usuario adicionado com sucesso.\n");
 	
 }
 
-void removeUser(User **list, int id){
+void removeUser(FILE **userFile, int id){
 	
 	printf("\n");
-	if(*list == NULL){
+	*userFile = fopen("users.txt", "r+");
+	if(*userFile == NULL){
+		printf("Erro na abertura do arquivo.\n");
+		return;
+	}
+	FILE *userFileTemp = fopen("usersTemp.txt", "w");
+	if(userFileTemp == NULL){
+		printf("Erro na criacao arquivo temporario.\n");
+		return;
+	}
+	int idUser;
+	char name[MAX];
+	char cpf[CPF_MAX];
+	if(feof(*userFile)){
+		printf("Nenhum usuario cadastrado.\n");
+		return;	
+	} 
+	int notFound = 1;
+	while(fscanf(*userFile, "%d '%[^']' '%[^']'\n", &idUser, name, cpf) != EOF){
+		if(idUser != id)
+			fprintf(userFileTemp, "%d '%s' '%s'\n", idUser, name, cpf);
+		else
+			notFound--;
+	}
+	if(notFound){
+		printf("Usuario nao encontrado.\n");
+		return;	
+	}
+	fclose(*userFile);
+	fclose(userFileTemp);
+	
+	if(remove("users.txt") != 0){
+		printf("Erro na remocao do arquivo.\n");
+		return;
+	}
+	
+	if(rename("usersTemp.txt", "users.txt") != 0){
+		printf("Erro na renomeacao do arquivo.\n");
+		return;
+	}
+	
+	printf("Usuario removido com sucesso.\n");
+}
+
+void searchUser(FILE *userFile, char name[]){
+	
+	printf("\n");
+	userFile = fopen("users.txt", "r");
+	if(userFile == NULL){
+		printf("Falha no acesso ao arquivo.\n");
+		return;
+	}
+	int id;
+	char nameUser[MAX];
+	char cpf[CPF_MAX];
+	int notFound = 1;
+	while(fscanf(userFile, "%d '%[^']' '%[^']'\n", &id, nameUser, cpf) != EOF){
+		if(strstr(nameUser, name) != NULL){
+			printf("%d %s %s\n", id, nameUser, cpf);
+			notFound = 0;
+		}
+	}
+	if(notFound)
+		printf("Usuario nao encontrado.\n");
+	fclose(userFile);
+}
+
+void showUserFile(FILE *userFile){
+	
+	printf("\n");
+	userFile = fopen("users.txt", "r");
+	if(userFile == NULL){
+		printf("Falha no acesso ao arquivo.\n");
+		return;
+	}
+	if(feof(userFile)){
 		printf("Nenhum usuario cadastrado.\n");
 		return;
-	} else{
-		User *p = NULL;
-		User *q = *list;
-		while(q != NULL && q->id != id){
-			p = q;
-			q = q->next;	
-		}
-		if(p == NULL){
-			*list = q->next;
-			free(q);
-		} else{
-			if(q != NULL){
-				p->next = q->next;
-				free(q);
-			} else{
-				printf("Usuario nao encontrado.\n");
-			}
-		}
 	}
-	
-	printf("Usuario removido com sucesso!\n");
-	
-}
-
-User *searchUser(User *list, char name[]){
-	User *user = list;
-	while(user != NULL){
-		if(strstr(user->name, name) != NULL){
-			printf("Usuario encontrado.\n");
-			return user;
-		}
-		user = user->next;
+	int id;
+	char name[MAX];
+	char cpf[CPF_MAX];
+	printf("USUARIOS CADASTRADOS:\n");
+	while(fscanf(userFile, "%d '%[^']' '%[^']'\n", &id, name, cpf) != EOF){
+		printf("%d %s %s\n", id, name, cpf);
 	}
-	printf("Usuario nao encontrado.\n");
-	return NULL;
-}
-
-void showUserList(User *list){
+	fclose(userFile);
 	
-	printf("\n");
-	if(list == NULL){
-		printf("Lista vazia.\n");
-		return;
-	} else{
-		printf("USUARIOS CADASTRADOS:\n");
-		for(; list != NULL; list = list->next)
-			printf("%d %s %s\n", list->id, list->name, list->cpf);
-	}
 }
 
 #endif

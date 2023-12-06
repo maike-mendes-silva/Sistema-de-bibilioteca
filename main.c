@@ -5,7 +5,7 @@
 
 int main(int argc, char *argv[]) {
 	
-	User *userList = NULL;
+	FILE *userFile;
 	char op;
 	
 	do{	
@@ -14,32 +14,30 @@ int main(int argc, char *argv[]) {
 		printf("Feito por: Maike Mendes Silva\n\n");
 		printf("---- COMANDOS ----\n\n");
 		printf("MENU USUARIO:\n");
-		printf("Cadastrar Usuario ==> C {'Nome'} {'CPF'}\n");
-		printf("Remover Usuario ==> R {'ID'}\n");
-		printf("Pesquisar Usuario(s) ==> P {'Nome'}\n");
+		printf("Cadastrar Usuario ==> C 'Nome' 'CPF'\n");
+		printf("Remover Usuario ==> R 'ID'\n");
+		printf("Pesquisar Usuario(s) ==> P 'Nome'\n");
 		printf("Mostrar Usuario(s) ==> M\n\n");
 		printf("Digite o comando: ");
 		int id;
 		char name[MAX];
-		char cpf[15];
+		char cpf[CPF_MAX];
 		scanf(" %c", &op);
 		switch(op){
 			case 'C':
 				scanf(" '%50[^']' '%14[^']'", name, cpf);
-				insertUser(&userList, name, cpf);
+				insertUser(&userFile, name, cpf);
 				break;
 			case 'R':
 				scanf(" %d", &id);
-				removeUser(&userList, id);
+				removeUser(&userFile, id);
 				break;
 			case 'P':
 				scanf(" '%50[^']'", name);
-				User *user = searchUser(userList, name);
-				if(user != NULL)
-					printf("%d %s %s\n", user->id, user->name, user->cpf);
+				searchUser(userFile, name);
 				break;
 			case 'M':
-				showUserList(userList);
+				showUserFile(userFile);
 				break;
 		}
 		printf("\nPressione qualquer letra para continuar...");
