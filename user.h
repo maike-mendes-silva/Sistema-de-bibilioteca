@@ -16,6 +16,17 @@ int getLastIdUser(FILE *userFile){
 	
 }
 
+int isRegisteredUser(FILE *userFile, char cpf[]){
+	
+	char cpfUser[MAX];
+	while(fscanf(userFile, "%*d '%*[^']' '%[^']'\n", cpfUser) != EOF){
+		if(!strcmp(cpfUser, cpf))
+			return 1;
+	}
+	return 0;
+	
+}
+
 void insertUser(FILE **userFile, char name[], char cpf[]){
 	
 	printf("\n");
@@ -25,6 +36,10 @@ void insertUser(FILE **userFile, char name[], char cpf[]){
 		return;
 	}
 	int id;
+	if(isRegisteredUser(*userFile, cpf)){
+		printf("Usuario ja registrado.\n");
+		return;
+	}
 	id = getLastIdUser(*userFile);
 	fprintf(*userFile, "%d '%s' '%s'\n", id, name, cpf);
 	fclose(*userFile);
@@ -57,7 +72,7 @@ void removeUser(FILE **userFile, int id){
 		if(idUser != id)
 			fprintf(userFileTemp, "%d '%s' '%s'\n", idUser, name, cpf);
 		else
-			notFound--;
+			notFound = 0;
 	}
 	if(notFound){
 		printf("Usuario nao encontrado.\n");
@@ -93,7 +108,7 @@ void searchUser(FILE *userFile, char name[]){
 	int notFound = 1;
 	while(fscanf(userFile, "%d '%[^']' '%[^']'\n", &id, nameUser, cpf) != EOF){
 		if(strstr(nameUser, name) != NULL){
-			printf("%d %s %s\n", id, nameUser, cpf);
+			printf("%d -> %s / %s\n", id, nameUser, cpf);
 			notFound = 0;
 		}
 	}
@@ -110,16 +125,12 @@ void showUserFile(FILE *userFile){
 		printf("Falha no acesso ao arquivo.\n");
 		return;
 	}
-	if(feof(userFile)){
-		printf("Nenhum usuario cadastrado.\n");
-		return;
-	}
 	int id;
 	char name[MAX];
 	char cpf[CPF_MAX];
 	printf("USUARIOS CADASTRADOS:\n");
 	while(fscanf(userFile, "%d '%[^']' '%[^']'\n", &id, name, cpf) != EOF){
-		printf("%d %s %s\n", id, name, cpf);
+		printf("%d -> %s / %s\n", id, name, cpf);
 	}
 	fclose(userFile);
 	
