@@ -15,6 +15,8 @@ int main() {
 	
 	FILE *userFile;
 	FILE *bookFile;
+	FILE *loanBookFile;
+	
 	char op;
 	
 	do{	
@@ -66,8 +68,8 @@ int main() {
 				printf("Cadastrar Livro ==> C 'Nome Livro' 'Nome Autor' Ano 'ISBN' Copias\n");
 				printf("Aumentar/Diminuir copias ==> A ID Copias\n");
 				printf("Remover Livro ==> R ID\n");
-				printf("Emprestar Livro ==> E Usuario_ID Livro_ID\n");
-				printf("Devolver Livro ==> D Usuario_ID Livro_ID\n");
+				printf("Emprestar Livro ==> E UsuarioID LivroID\n");
+				printf("Devolver Livro ==> D UsuarioID LivroID\n");
 				printf("Pesquisar Livro(s) ==> P 'Nome'\n");
 				printf("Mostrar Livro(s) no Acervo ==> M\n");
 				printf("Listar Livro(s) Emprestados ==> L\n");
@@ -75,6 +77,7 @@ int main() {
 				printf("Digite o comando: ");
 				
 				int id;
+				int idUser;
 				char nameBook[MAX];
 				char nameAuthor[MAX];
 				int year;
@@ -94,12 +97,23 @@ int main() {
 						scanf(" %d", &id);
 						removeBook(&bookFile, id);
 						break;
+					case 'E':
+						scanf(" %d %d", &idUser, &id);
+						loanBook(bookFile, userFile, loanBookFile, idUser, id);
+						break;
+					case 'D':
+						scanf(" %d %d", &idUser, &id);
+						returnBook(loanBookFile, bookFile, idUser, id);
+						break;
 					case 'P':
 						scanf(" '%50[^']'", nameBook);
 						searchBook(bookFile, nameBook);
 						break;
 					case 'M':
 						showBookFile(bookFile);
+						break;
+					case 'L':
+						showLoanBookFile(loanBookFile);
 						break;
 				}
 				printf("\nPressione qualquer letra para continuar...");
