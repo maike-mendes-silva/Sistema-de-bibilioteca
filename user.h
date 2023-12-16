@@ -40,6 +40,7 @@ void insertUser(FILE *userFile, char nameUser[], char cpfUser[]){
 	}
 	if(isRegisteredUser(userFile, cpfUser)){
 		printf("Usuario ja registrado.\n");
+		fclose(userFile);
 		return;
 	}
 	idUserFile = getLastIdUser(userFile);
@@ -57,39 +58,41 @@ void removeUser(FILE *userFile, int idUser){
 		printf("Erro na abertura do arquivo.\n");
 		return;
 	}
+	if(fgetc(userFile) == EOF){
+		printf("Nenhum usuario cadastrado.\n");
+		fclose(userFile);
+		return;	
+	} 
+	rewind(userFile);
 	FILE *userFileTemp = fopen("usersTemp.txt", "w");
 	if(userFileTemp == NULL){
 		printf("Erro na criacao arquivo temporario.\n");
+		fclose(userFile);
 		return;
 	}
-	if(feof(userFile)){
-		printf("Nenhum usuario cadastrado.\n");
-		return;	
-	} 
 	int notFound = 1;
-	while(fscanf(userFile, "%d '%[^']' '%[^']'\n", &idUserFile, nameUserFile, cpfUserFile) != EOF){
+	while(fscanf(userFile, "%d '%50[^']' '%50[^']'\n", &idUserFile, nameUserFile, cpfUserFile) != EOF){
 		if(idUserFile != idUser)
 			fprintf(userFileTemp, "%d '%s' '%s'\n", idUserFile, nameUserFile, cpfUserFile);
 		else
 			notFound = 0;
 	}
-	if(notFound){
-		printf("Usuario nao encontrado.\n");
-		return;	
-	}
 	fclose(userFile);
 	fclose(userFileTemp);
-	
+	if(notFound){
+		printf("Usuario nao encontrado.\n");
+		if(remove("usersTemp.txt") != 0)
+			printf("Erro na remocao do arquivo.\n");
+		return;	
+	}
 	if(remove("users.txt") != 0){
 		printf("Erro na remocao do arquivo.\n");
 		return;
 	}
-	
 	if(rename("usersTemp.txt", "users.txt") != 0){
 		printf("Erro na renomeacao do arquivo.\n");
 		return;
 	}
-	
 	printf("Usuario removido com sucesso.\n");
 }
 
@@ -108,9 +111,9 @@ void searchUser(FILE *userFile, char nameUser[]){
 			notFound = 0;
 		}
 	}
+	fclose(userFile);
 	if(notFound)
 		printf("Usuario nao encontrado.\n");
-	fclose(userFile);
 }
 
 void showUserFile(FILE *userFile){
@@ -121,6 +124,12 @@ void showUserFile(FILE *userFile){
 		printf("Falha no acesso ao arquivo.\n");
 		return;
 	}
+	if(fgetc(userFile) == EOF){
+		printf("Nenhum usuario cadastrado.\n");
+		fclose(userFile);
+		return;	
+	} 
+	rewind(userFile);
 	printf("USUARIOS CADASTRADOS:\n");
 	while(fscanf(userFile, "%d '%[^']' '%[^']'\n", &idUserFile, nameUserFile, cpfUserFile) != EOF){
 		printf("%d -> %s / %s\n", idUserFile, nameUserFile, cpfUserFile);

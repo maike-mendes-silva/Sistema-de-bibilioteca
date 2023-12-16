@@ -47,6 +47,7 @@ void insertBook(FILE *bookFile, char nameBook[], char nameAuthorBook[], int year
 	}
 	if(isRegisteredBook(bookFile, isbnBook)){
 		printf("Livro ja registrado.\n");
+		fclose(bookFile);
 		return;
 	}
 	idBookFile = getLastIdBook(bookFile);
@@ -61,7 +62,11 @@ void addCopies(FILE *bookFile, int idBook, int copiesBook){
 	printf("\n");
 	FILE *bookFileTemp = fopen("booksTemp.txt", "w");
 	bookFile = fopen("books.txt", "r+");
-	if(bookFileTemp == NULL || bookFile == NULL){
+	if(bookFile == NULL){
+		printf("Falha no acesso ao arquivo.\n");
+		return;
+	}
+	if(bookFileTemp == NULL){
 		printf("Falha no acesso ao arquivo.\n");
 		return;
 	}
@@ -74,15 +79,12 @@ void addCopies(FILE *bookFile, int idBook, int copiesBook){
 			fprintf(bookFileTemp, "%d '%s' '%s' %d '%s' %d %d\n", idBookFile, nameBookFile, nameAuthorBookFile, yearBookFile, isbnBookFile, copiesBookFile + copiesBook, availableCopiesBookFile + copiesBook);
 		}	
 	}
-	
+	fclose(bookFile);
+	fclose(bookFileTemp);
 	if(notFound){
 		printf("Livro nao encontrado.\n");
 		return;
 	}
-	
-	fclose(bookFile);
-	fclose(bookFileTemp);
-	
 	if(remove("books.txt") != 0){
 		printf("Erro na remocao do arquivo.\n");
 		return;
@@ -97,13 +99,12 @@ void addCopies(FILE *bookFile, int idBook, int copiesBook){
 	
 }
 
-void alterAvailableCopies(FILE **bookFile, int idBook, int copiesBook){
+int alterAvailableCopies(FILE **bookFile, int idBook, int copiesBook){
 
-	printf("\n");
 	FILE *bookFileTemp = fopen("booksTemp.txt", "w");
 	if(bookFileTemp == NULL){
 		printf("Falha no acesso ao arquivo.\n");
-		return;
+		return 0;
 	}
 	rewind(*bookFile);
 	notFound = 1;
@@ -115,25 +116,23 @@ void alterAvailableCopies(FILE **bookFile, int idBook, int copiesBook){
 			fprintf(bookFileTemp, "%d '%s' '%s' %d '%s' %d %d\n", idBookFile, nameBookFile, nameAuthorBookFile, yearBookFile, isbnBookFile, copiesBookFile, availableCopiesBookFile - copiesBook);
 		}	
 	}
-	
-	if(notFound){
-		printf("Livro nao encontrado.\n");
-		return;
-	}
-	
 	fclose(*bookFile);
 	fclose(bookFileTemp);
-	
+	if(notFound){
+		printf("Livro nao encontrado.\n");
+		return 0;
+	}
 	if(remove("books.txt") != 0){
 		printf("Erro na remocao do arquivo.\n");
-		return;
+		return 0;
 	}
 	
 	if(rename("booksTemp.txt", "books.txt") != 0){
 		printf("Erro na renomeacao do arquivo.\n");
-		return;
+		return 0;
 	}
 	
+	return 1;
 }
 
 void removeBook(FILE *bookFile, int idBook){
@@ -149,10 +148,12 @@ void removeBook(FILE *bookFile, int idBook){
 		printf("Erro na criacao arquivo temporario.\n");
 		return;
 	}
-	if(feof(bookFile)){
+	if(fgetc(bookFile) == EOF){
 		printf("Nenhum livro cadastrado.\n");
+		fclose(bookFile);
 		return;	
 	} 
+	rewind(bookFile);
 	notFound = 1;
 	while(fscanf(bookFile, "%d '%50[^']' '%50[^']' %d '%15[^']' %d %d\n", &idBookFile, nameBookFile, nameAuthorBookFile, &yearBookFile, isbnBookFile, &copiesBookFile, &availableCopiesBookFile) != EOF){
 		if(idBookFile != idBook)
@@ -160,13 +161,14 @@ void removeBook(FILE *bookFile, int idBook){
 		else
 			notFound = 0;
 	}
-	if(notFound){
-		printf("Livro nao encontrado.\n");
-		return;	
-	}
 	fclose(bookFile);
 	fclose(bookFileTemp);
-	
+	if(notFound){
+		printf("Livro nao encontrado.\n");
+		if(remove("booksTemp.txt") != 0)
+			printf("Erro na remocao do arquivo.\n");
+		return;	
+	}
 	if(remove("books.txt") != 0){
 		printf("Erro na remocao do arquivo.\n");
 		return;
@@ -182,6 +184,7 @@ void removeBook(FILE *bookFile, int idBook){
 
 void loanBook(FILE *bookFile, FILE *userFile, FILE *loanBookFile, int idUser, int idBook){
 	
+	printf("\n");
 	bookFile = fopen("books.txt", "r");
 	if(bookFile == NULL){
 		printf("Falha no acesso ao arquivo.\n");
@@ -196,13 +199,16 @@ void loanBook(FILE *bookFile, FILE *userFile, FILE *loanBookFile, int idUser, in
 	}
 	if(notFound){
 		printf("Livro nao encontrado.\n");
+		fclose(bookFile);
 		return;
 	}
 	if(availableCopiesBookFile == 0){
 		printf("Livro indisponivel para emprestimo.\n");
+		fclose(bookFile);
 		return;
 	}
-	alterAvailableCopies(&bookFile, idBook, 1);
+	if(!alterAvailableCopies(&bookFile, idBook, 1))
+		return;
 	
 	userFile = fopen("users.txt", "r");
 	if(userFile == NULL){
@@ -216,6 +222,7 @@ void loanBook(FILE *bookFile, FILE *userFile, FILE *loanBookFile, int idUser, in
 			break;
 		}
 	}
+	fclose(userFile);
 	if(notFound){
 		printf("Usuario nao encontrado.\n");
 		return;
@@ -228,26 +235,41 @@ void loanBook(FILE *bookFile, FILE *userFile, FILE *loanBookFile, int idUser, in
 	}
 	fprintf(loanBookFile, "%d '%s' %d '%s'\n", idBook, nameBookFile, idUser, nameUserFile);
 	printf("Emprestimo realizado com sucesso.\n");
-	
-	fclose(userFile);
-	fclose(bookFile);
 	fclose(loanBookFile);
 	
 }
 
 void returnBook(FILE *loanBookFile, FILE *bookFile, int idUser, int idBook){
 	
+	printf("\n");
 	bookFile = fopen("books.txt", "r+");
 	loanBookFile = fopen("loanBooks.txt", "r+");
 	FILE *loanBookFileTemp = fopen("loanBooksTemp.txt", "w");
-	if(bookFile == NULL || loanBookFile == NULL || loanBookFileTemp == NULL){
+	if(bookFile == NULL){
 		printf("Erro no acesso ao arquivo.\n");
 		return;
 	}
-	if(feof(loanBookFile)){
-		printf("Nenhum livro cadastrado.\n");
+	if(loanBookFile == NULL){
+		printf("Erro no acesso ao arquivo.\n");
+		fclose(bookFile);
+		return;
+	}
+	if(loanBookFileTemp == NULL){
+		printf("Erro no acesso ao arquivo.\n");
+		fclose(bookFile);
+		fclose(loanBookFile);
+		return;
+	}
+	if(fgetc(loanBookFile) == EOF){
+		printf("Nenhum livro emprestado.\n");
+		fclose(bookFile);
+		fclose(loanBookFile);
+		fclose(loanBookFileTemp);
+		if(remove("loanBooksTemp.txt") != 0)
+			printf("Erro na remocao do arquivo.\n");
 		return;	
 	} 
+	rewind(loanBookFile);
 	notFound = 1;
 	
 	while(fscanf(loanBookFile, "%d '%50[^']' %d '%50[^']'\n", &idBookFile, nameBookFile, &idUserFile, nameUserFile) != EOF){
@@ -258,13 +280,19 @@ void returnBook(FILE *loanBookFile, FILE *bookFile, int idUser, int idBook){
 	}
 	if(notFound){
 		printf("Registro nao encontrado.\n");
+		fclose(loanBookFileTemp);
+		fclose(loanBookFile);
+		fclose(bookFile);
+		if(remove("loanBooksTemp.txt") != 0)
+			printf("Erro na remocao do arquivo.\n");
 		return;	
 	}
-	alterAvailableCopies(&bookFile, idBook, -1);
 	
+	if(!alterAvailableCopies(&bookFile, idBook, -1))
+		return;
+		
 	fclose(loanBookFileTemp);
 	fclose(loanBookFile);
-	
 	if(remove("loanBooks.txt") != 0){
 		printf("Erro na remocao do arquivo.\n");
 		return;
@@ -299,9 +327,9 @@ void searchBook(FILE *bookFile, char nameBook[]){
 			notFound = 0;
 		}
 	}
+	fclose(bookFile);
 	if(notFound)
 		printf("Livro nao encontrado.\n");
-	fclose(bookFile);
 }
 
 void showBookFile(FILE *bookFile){
@@ -312,6 +340,12 @@ void showBookFile(FILE *bookFile){
 		printf("Falha no acesso ao arquivo.\n");
 		return;
 	}
+	if(fgetc(bookFile) == EOF){
+		printf("Nenhum livro cadastrado.\n");
+		fclose(bookFile);
+		return;	
+	} 
+	rewind(bookFile);
 	printf("LIVROS CADASTRADOS:\n");
 	while(fscanf(bookFile, "%d '%50[^']' '%50[^']' %d '%15[^']' %d %d\n", &idBookFile, nameBookFile, nameAuthorBookFile, &yearBookFile, isbnBookFile, &copiesBookFile, &availableCopiesBookFile) != EOF){
 		printf("\n%d -> %s\n", idBookFile, nameBookFile);
@@ -333,6 +367,12 @@ void showLoanBookFile(FILE *loanBookFile){
 		printf("Falha no acesso ao arquivo.\n");
 		return;
 	}
+	if(fgetc(loanBookFile) == EOF){
+		printf("Nenhum livro emprestado.\n");
+		fclose(loanBookFile);
+		return;	
+	} 
+	rewind(loanBookFile);
 	printf("LIVROS EMPRESTADOS:\n");
 	while(fscanf(loanBookFile, "%d '%50[^']' %d '%50[^']'\n", &idBookFile, nameBookFile, &idUserFile, nameUserFile) != EOF){
 		printf("Usuario: %d -> %s\n", idUserFile, nameUserFile);
