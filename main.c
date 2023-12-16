@@ -44,11 +44,11 @@ int main() {
 				switch(op){
 					case 'C':
 						scanf(" '%50[^']' '%14[^']'", name, cpf);
-						insertUser(&userFile, name, cpf);
+						insertUser(userFile, name, cpf);
 						break;
 					case 'R':
 						scanf(" %d", &id);
-						removeUser(&userFile, id);
+						removeUser(userFile, id);
 						break;
 					case 'P':
 						scanf(" '%50[^']'", name);
@@ -56,6 +56,11 @@ int main() {
 						break;
 					case 'M':
 						showUserFile(userFile);
+						break;
+					case 'S':
+						break;
+					default:
+						printf("\nComando inexistente.\n");
 						break;
 				}
 				printf("\nPressione qualquer letra para continuar...");
@@ -87,7 +92,7 @@ int main() {
 				switch(op){
 					case 'C':
 						scanf(" '%50[^']' '%50[^']' %d '%15[^']' %d", nameBook, nameAuthor, &year, isbn, &copies);
-						insertBook(&bookFile, nameBook, nameAuthor, year, isbn, copies);
+						insertBook(bookFile, nameBook, nameAuthor, year, isbn, copies);
 						break;
 					case 'A':
 						scanf(" %d %d", &id, &copies);
@@ -95,7 +100,7 @@ int main() {
 						break;
 					case 'R':
 						scanf(" %d", &id);
-						removeBook(&bookFile, id);
+						removeBook(bookFile, id);
 						break;
 					case 'E':
 						scanf(" %d %d", &idUser, &id);
@@ -115,12 +120,20 @@ int main() {
 					case 'L':
 						showLoanBookFile(loanBookFile);
 						break;
+					case 'S':
+						break;
+					default:
+						printf("\nComando inexistente.\n");
+						break;
 				}
 				printf("\nPressione qualquer letra para continuar...");
 				char c = getch();
 			} while(op != 'S');
-		}
-			
+		} else if(op != 'E'){
+			printf("\nComando inexistente.\n");
+			printf("\nPressione qualquer letra para continuar...");
+			char c = getch();	
+		}			
 	} while(op != 'E');
 	
 	printf("\nPrograma finalizado.");

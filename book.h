@@ -7,48 +7,56 @@
 #include <string.h>
 #include <stdlib.h>
 
+int idBookFile;
+char nameBookFile[MAX];
+char nameAuthorBookFile[MAX];
+int yearBookFile;
+char isbnBookFile[ISBN_MAX];
+int copiesBookFile;
+int availableCopiesBookFile;
+int notFound;
+char nameUserFile[MAX];
+int idUserFile;
+
 int getLastIdBook(FILE *bookFile){
 	
-	int id = 0;
+	idBookFile = 0;
 	rewind(bookFile);
-	while(fscanf(bookFile, "%d '%*[^']' '%*[^']' %*d '%*[^']' %*d %*d\n", &id) != EOF);
-	return (id + 1);
+	while(fscanf(bookFile, "%d '%*[^']' '%*[^']' %*d '%*[^']' %*d %*d\n", &idBookFile) != EOF);
+	return (idBookFile + 1);
 	
 }
 
-int isRegisteredBook(FILE *bookFile, char isbn[]){
+int isRegisteredBook(FILE *bookFile, char isbnBook[]){
 	
-	char isbnBook[ISBN_MAX];
-	while(fscanf(bookFile, "%*d '%*[^']' '%*[^']' %*d '%[^']' %*d %*d\n", isbnBook) != EOF){
-		if(!strcmp(isbn, isbnBook))
+	while(fscanf(bookFile, "%*d '%*[^']' '%*[^']' %*d '%[^']' %*d %*d\n", isbnBookFile) != EOF){
+		if(!strcmp(isbnBook, isbnBookFile))
 			return 1;
 	}
 	return 0;
 	
 }
 
-void insertBook(FILE **bookFile, char nameBook[], char nameAuthor[], int year, char isbn[], int copies){
+void insertBook(FILE *bookFile, char nameBook[], char nameAuthorBook[], int yearBook, char isbnBook[], int copiesBook){
 	
 	printf("\n");
-	*bookFile = fopen("books.txt", "a+");
-	if(*bookFile == NULL){
+	bookFile = fopen("books.txt", "a+");
+	if(bookFile == NULL){
 		printf("Erro na abertura do arquivo.\n");
 		return;
 	}
-	if(isRegisteredBook(*bookFile, isbn)){
+	if(isRegisteredBook(bookFile, isbnBook)){
 		printf("Livro ja registrado.\n");
 		return;
 	}
-	int id;
-	id = getLastIdBook(*bookFile);
-	fprintf(*bookFile, "%d '%s' '%s' %d '%s' %d %d\n", id, nameBook, nameAuthor, year, isbn, copies, copies);
-	fclose(*bookFile);
+	idBookFile = getLastIdBook(bookFile);
+	fprintf(bookFile, "%d '%s' '%s' %d '%s' %d %d\n", idBookFile, nameBook, nameAuthorBook, yearBook, isbnBook, copiesBook, copiesBook);
+	fclose(bookFile);
 	printf("Livro adicionado com sucesso.\n");
 	
 }
 
-void addCopies(FILE *bookFile, int id, int copies){
-
+void addCopies(FILE *bookFile, int idBook, int copiesBook){
 
 	printf("\n");
 	FILE *bookFileTemp = fopen("booksTemp.txt", "w");
@@ -57,21 +65,13 @@ void addCopies(FILE *bookFile, int id, int copies){
 		printf("Falha no acesso ao arquivo.\n");
 		return;
 	}
-
-	int idBook;
-	char nameBook[MAX];
-	char nameAuthor[MAX];
-	int year;
-	char isbn[ISBN_MAX];
-	int bookCopies;
-	int availableCopies;
-	int notFound = 1;
-	while(fscanf(bookFile, "%d '%50[^']' '%50[^']' %d '%15[^']' %d %d\n", &idBook, nameBook, nameAuthor, &year, isbn, &bookCopies, &availableCopies) != EOF){
-		if(idBook != id)
-			fprintf(bookFileTemp, "%d '%s' '%s' %d '%s' %d %d\n", idBook, nameBook, nameAuthor, year, isbn, bookCopies, availableCopies);
+	notFound = 1;
+	while(fscanf(bookFile, "%d '%50[^']' '%50[^']' %d '%15[^']' %d %d\n", &idBookFile, nameBookFile, nameAuthorBookFile, &yearBookFile, isbnBookFile, &copiesBookFile, &availableCopiesBookFile) != EOF){
+		if(idBookFile != idBook)
+			fprintf(bookFileTemp, "%d '%s' '%s' %d '%s' %d %d\n", idBookFile, nameBookFile, nameAuthorBookFile, yearBookFile, isbnBookFile, copiesBookFile, availableCopiesBookFile);
 		else{
 			notFound = 0;
-			fprintf(bookFileTemp, "%d '%s' '%s' %d '%s' %d %d\n", idBook, nameBook, nameAuthor, year, isbn, bookCopies + copies, availableCopies + copies);
+			fprintf(bookFileTemp, "%d '%s' '%s' %d '%s' %d %d\n", idBookFile, nameBookFile, nameAuthorBookFile, yearBookFile, isbnBookFile, copiesBookFile + copiesBook, availableCopiesBookFile + copiesBook);
 		}	
 	}
 	
@@ -97,7 +97,7 @@ void addCopies(FILE *bookFile, int id, int copies){
 	
 }
 
-void alterAvailableCopies(FILE **bookFile, int id, int copies){
+void alterAvailableCopies(FILE **bookFile, int idBook, int copiesBook){
 
 	printf("\n");
 	FILE *bookFileTemp = fopen("booksTemp.txt", "w");
@@ -106,21 +106,13 @@ void alterAvailableCopies(FILE **bookFile, int id, int copies){
 		return;
 	}
 	rewind(*bookFile);
-
-	int idBook;
-	char nameBook[MAX];
-	char nameAuthor[MAX];
-	int year;
-	char isbn[ISBN_MAX];
-	int bookCopies;
-	int availableCopies;
-	int notFound = 1;
-	while(fscanf(*bookFile, "%d '%50[^']' '%50[^']' %d '%15[^']' %d %d\n", &idBook, nameBook, nameAuthor, &year, isbn, &bookCopies, &availableCopies) != EOF){
-		if(idBook != id)
-			fprintf(bookFileTemp, "%d '%s' '%s' %d '%s' %d %d\n", idBook, nameBook, nameAuthor, year, isbn, bookCopies, availableCopies);
+	notFound = 1;
+	while(fscanf(*bookFile, "%d '%50[^']' '%50[^']' %d '%15[^']' %d %d\n", &idBookFile, nameBookFile, nameAuthorBookFile, &yearBookFile, isbnBookFile, &copiesBookFile, &availableCopiesBookFile) != EOF){
+		if(idBookFile != idBook)
+			fprintf(bookFileTemp, "%d '%s' '%s' %d '%s' %d %d\n", idBookFile, nameBookFile, nameAuthorBookFile, yearBookFile, isbnBookFile, copiesBookFile, availableCopiesBookFile);
 		else{
 			notFound = 0;
-			fprintf(bookFileTemp, "%d '%s' '%s' %d '%s' %d %d\n", idBook, nameBook, nameAuthor, year, isbn, bookCopies, availableCopies - copies);
+			fprintf(bookFileTemp, "%d '%s' '%s' %d '%s' %d %d\n", idBookFile, nameBookFile, nameAuthorBookFile, yearBookFile, isbnBookFile, copiesBookFile, availableCopiesBookFile - copiesBook);
 		}	
 	}
 	
@@ -144,11 +136,11 @@ void alterAvailableCopies(FILE **bookFile, int id, int copies){
 	
 }
 
-void removeBook(FILE **bookFile, int id){
+void removeBook(FILE *bookFile, int idBook){
 	
 	printf("\n");
-	*bookFile = fopen("books.txt", "r+");
-	if(*bookFile == NULL){
+	bookFile = fopen("books.txt", "r+");
+	if(bookFile == NULL){
 		printf("Erro na abertura do arquivo.\n");
 		return;
 	}
@@ -157,22 +149,14 @@ void removeBook(FILE **bookFile, int id){
 		printf("Erro na criacao arquivo temporario.\n");
 		return;
 	}
-	if(feof(*bookFile)){
+	if(feof(bookFile)){
 		printf("Nenhum livro cadastrado.\n");
 		return;	
 	} 
-	int idBook;
-	char nameBook[MAX];
-	char nameAuthor[MAX];
-	int year;
-	char isbn[ISBN_MAX];
-	int copies;
-	int availableCopies;
-
-	int notFound = 1;
-	while(fscanf(*bookFile, "%d '%50[^']' '%50[^']' %d '%15[^']' %d %d\n", &idBook, nameBook, nameAuthor, &year, isbn, &copies, &availableCopies) != EOF){
-		if(idBook != id)
-			fprintf(bookFileTemp, "%d '%s' '%s' %d '%s' %d %d\n", idBook, nameBook, nameAuthor, year, isbn, copies, availableCopies);
+	notFound = 1;
+	while(fscanf(bookFile, "%d '%50[^']' '%50[^']' %d '%15[^']' %d %d\n", &idBookFile, nameBookFile, nameAuthorBookFile, &yearBookFile, isbnBookFile, &copiesBookFile, &availableCopiesBookFile) != EOF){
+		if(idBookFile != idBook)
+			fprintf(bookFileTemp, "%d '%s' '%s' %d '%s' %d %d\n", idBookFile, nameBookFile, nameAuthorBookFile, yearBookFile, isbnBookFile, copiesBookFile, availableCopiesBookFile);
 		else
 			notFound = 0;
 	}
@@ -180,7 +164,7 @@ void removeBook(FILE **bookFile, int id){
 		printf("Livro nao encontrado.\n");
 		return;	
 	}
-	fclose(*bookFile);
+	fclose(bookFile);
 	fclose(bookFileTemp);
 	
 	if(remove("books.txt") != 0){
@@ -203,11 +187,8 @@ void loanBook(FILE *bookFile, FILE *userFile, FILE *loanBookFile, int idUser, in
 		printf("Falha no acesso ao arquivo.\n");
 		return;
 	}
-	int idBookFile;
-	char nameBook[MAX];
-	int availableCopies;
-	int notFound = 1;
-	while(fscanf(bookFile, "%d '%50[^']' '%*50[^']' %*d '%*15[^']' %*d %d\n", &idBookFile, nameBook, &availableCopies) != EOF){
+	notFound = 1;
+	while(fscanf(bookFile, "%d '%50[^']' '%*50[^']' %*d '%*15[^']' %*d %d\n", &idBookFile, nameBookFile, &availableCopiesBookFile) != EOF){
 		if(idBook == idBookFile){
 			notFound = 0;
 			break;
@@ -217,7 +198,7 @@ void loanBook(FILE *bookFile, FILE *userFile, FILE *loanBookFile, int idUser, in
 		printf("Livro nao encontrado.\n");
 		return;
 	}
-	if(availableCopies == 0){
+	if(availableCopiesBookFile == 0){
 		printf("Livro indisponivel para emprestimo.\n");
 		return;
 	}
@@ -228,10 +209,8 @@ void loanBook(FILE *bookFile, FILE *userFile, FILE *loanBookFile, int idUser, in
 		printf("Falha no acesso ao arquivo.\n");
 		return;
 	}
-	int idUserFile;
-	char nameUser[MAX];
 	notFound = 1;
-	while(fscanf(userFile, "%d '%[^']' '%*[^']'\n", &idUserFile, nameUser) != EOF){
+	while(fscanf(userFile, "%d '%[^']' '%*[^']'\n", &idUserFile, nameUserFile) != EOF){
 		if(idUser == idUserFile){
 			notFound = 0;
 			break;
@@ -242,12 +221,12 @@ void loanBook(FILE *bookFile, FILE *userFile, FILE *loanBookFile, int idUser, in
 		return;
 	}
 	
-	loanBookFile = fopen("loanbooks.txt", "a+");
+	loanBookFile = fopen("loanBooks.txt", "a+");
 	if(loanBookFile == NULL){
 		printf("Falha no acesso ao arquivo.\n");
 		return;
 	}
-	fprintf(loanBookFile, "%d '%s' %d '%s'\n", idBook, nameBook, idUser, nameUser);
+	fprintf(loanBookFile, "%d '%s' %d '%s'\n", idBook, nameBookFile, idUser, nameUserFile);
 	printf("Emprestimo realizado com sucesso.\n");
 	
 	fclose(userFile);
@@ -256,37 +235,25 @@ void loanBook(FILE *bookFile, FILE *userFile, FILE *loanBookFile, int idUser, in
 	
 }
 
-void returnBook(FILE *loanBookFile, FILE *bookFile, int idUser, int id){
+void returnBook(FILE *loanBookFile, FILE *bookFile, int idUser, int idBook){
 	
 	bookFile = fopen("books.txt", "r+");
-	if(bookFile == NULL){
-		printf("Erro na abertura do arquivo.\n");
-		return;
-	}
-	loanBookFile = fopen("loanbooks.txt", "r+");
-	if(loanBookFile == NULL){
-		printf("Erro na abertura do arquivo.\n");
-		return;
-	}
-	FILE *loanBookFileTemp = fopen("loanbooksTemp.txt", "w");
-	if(loanBookFileTemp == NULL){
-		printf("Erro na criacao arquivo temporario.\n");
+	loanBookFile = fopen("loanBooks.txt", "r+");
+	FILE *loanBookFileTemp = fopen("loanBooksTemp.txt", "w");
+	if(bookFile == NULL || loanBookFile == NULL || loanBookFileTemp == NULL){
+		printf("Erro no acesso ao arquivo.\n");
 		return;
 	}
 	if(feof(loanBookFile)){
 		printf("Nenhum livro cadastrado.\n");
 		return;	
 	} 
-	int idBook;
-	char nameBook[MAX];
-	int idUserFile;
-	char nameUser[MAX];
+	notFound = 1;
 	
-	int notFound = 1;
-	while(fscanf(loanBookFile, "%d '%50[^']' %d '%50[^']'\n", &idBook, nameBook, &idUserFile, nameUser) != EOF){
-		if(idBook != id && idUser != idUserFile)
-			fprintf(loanBookFileTemp, "%d '%50[^']' %d '%50[^']'\n", idBook, nameBook, &idUserFile, nameUser);
-		else
+	while(fscanf(loanBookFile, "%d '%50[^']' %d '%50[^']'\n", &idBookFile, nameBookFile, &idUserFile, nameUserFile) != EOF){
+		if(idBookFile != idBook || idUser != idUserFile)
+			fprintf(loanBookFileTemp, "%d '%s' %d '%s'\n", idBookFile, nameBookFile, idUserFile, nameUserFile);	
+		else 
 			notFound = 0;
 	}
 	if(notFound){
@@ -298,12 +265,12 @@ void returnBook(FILE *loanBookFile, FILE *bookFile, int idUser, int id){
 	fclose(loanBookFileTemp);
 	fclose(loanBookFile);
 	
-	if(remove("loanbooks.txt") != 0){
+	if(remove("loanBooks.txt") != 0){
 		printf("Erro na remocao do arquivo.\n");
 		return;
 	}
 	
-	if(rename("loanbooksTemp.txt", "loanbooks.txt") != 0){
+	if(rename("loanBooksTemp.txt", "loanBooks.txt") != 0){
 		printf("Erro na renomeacao do arquivo.\n");
 		return;
 	}
@@ -312,7 +279,7 @@ void returnBook(FILE *loanBookFile, FILE *bookFile, int idUser, int id){
 	
 }
 
-void searchBook(FILE *bookFile, char name[]){
+void searchBook(FILE *bookFile, char nameBook[]){
 	
 	printf("\n");
 	bookFile = fopen("books.txt", "r");
@@ -320,22 +287,15 @@ void searchBook(FILE *bookFile, char name[]){
 		printf("Falha no acesso ao arquivo.\n");
 		return;
 	}
-	int idBook;
-	char nameBook[MAX];
-	char nameAuthor[MAX];
-	int year;
-	char isbn[ISBN_MAX];
-	int copies;
-	int availableCopies;
-	int notFound = 1;
-	while(fscanf(bookFile, "%d '%50[^']' '%50[^']' %d '%15[^']' %d %d\n", &idBook, nameBook, nameAuthor, &year, isbn, &copies, &availableCopies) != EOF){
-		if(strstr(nameBook, name) != NULL){
-			printf("%d -> %s\n", idBook, nameBook);
-			printf("Autor: %s\n", nameAuthor);
-			printf("Ano de Lancamento: %d\n", year);
-			printf("ISBN: %s\n", isbn);
-			printf("Copias totais: %d\n", copies);
-			printf("Copias disponiveis: %d\n\n", availableCopies);	
+	notFound = 1;
+	while(fscanf(bookFile, "%d '%50[^']' '%50[^']' %d '%15[^']' %d %d\n", &idBookFile, nameBookFile, nameAuthorBookFile, &yearBookFile, isbnBookFile, &copiesBookFile, &availableCopiesBookFile) != EOF){
+		if(strstr(nameBookFile, nameBook) != NULL){
+			printf("%d -> %s\n", idBookFile, nameBookFile);
+			printf("Autor: %s\n", nameAuthorBookFile);
+			printf("Ano de Lancamento: %d\n", yearBookFile);
+			printf("ISBN: %s\n", isbnBookFile);
+			printf("Copias totais: %d\n", copiesBookFile);
+			printf("Copias disponiveis: %d\n\n", availableCopiesBookFile);	
 			notFound = 0;
 		}
 	}
@@ -352,21 +312,14 @@ void showBookFile(FILE *bookFile){
 		printf("Falha no acesso ao arquivo.\n");
 		return;
 	}
-	int id;
-	char nameBook[MAX];
-	char nameAuthor[MAX];
-	int year;
-	char isbn[ISBN_MAX];
-	int copies;
-	int availableCopies;
 	printf("LIVROS CADASTRADOS:\n");
-	while(fscanf(bookFile, "%d '%50[^']' '%50[^']' %d '%15[^']' %d %d\n", &id, nameBook, nameAuthor, &year, isbn, &copies, &availableCopies) != EOF){
-		printf("\n%d -> %s\n", id, nameBook);
-		printf("Autor: %s\n", nameAuthor);
-		printf("Ano de Lancamento: %d\n", year);
-		printf("ISBN: %s\n", isbn);
-		printf("Copias totais: %d\n", copies);
-		printf("Copias disponiveis: %d\n\n", availableCopies);	
+	while(fscanf(bookFile, "%d '%50[^']' '%50[^']' %d '%15[^']' %d %d\n", &idBookFile, nameBookFile, nameAuthorBookFile, &yearBookFile, isbnBookFile, &copiesBookFile, &availableCopiesBookFile) != EOF){
+		printf("\n%d -> %s\n", idBookFile, nameBookFile);
+		printf("Autor: %s\n", nameAuthorBookFile);
+		printf("Ano de Lancamento: %d\n", yearBookFile);
+		printf("ISBN: %s\n", isbnBookFile);
+		printf("Copias totais: %d\n", copiesBookFile);
+		printf("Copias disponiveis: %d\n\n", availableCopiesBookFile);	
 	}
 	fclose(bookFile);
 	
@@ -380,14 +333,10 @@ void showLoanBookFile(FILE *loanBookFile){
 		printf("Falha no acesso ao arquivo.\n");
 		return;
 	}
-	int idBook;
-	char nameBook[MAX];
-	int idUser;
-	char nameUser[MAX];
 	printf("LIVROS EMPRESTADOS:\n");
-	while(fscanf(loanBookFile, "%d '%50[^']' %d '%50[^']'\n", &idBook, nameBook, &idUser, nameUser) != EOF){
-		printf("Usuario: %d -> %s\n", idUser, nameUser);
-		printf("Livro: %d -> %s\n", idBook, nameBook);
+	while(fscanf(loanBookFile, "%d '%50[^']' %d '%50[^']'\n", &idBookFile, nameBookFile, &idUserFile, nameUserFile) != EOF){
+		printf("Usuario: %d -> %s\n", idUserFile, nameUserFile);
+		printf("Livro: %d -> %s\n", idBookFile, nameBookFile);
 		printf("\n");
 	}
 	fclose(loanBookFile);

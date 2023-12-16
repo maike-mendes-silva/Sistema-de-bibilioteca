@@ -7,51 +7,53 @@
 #include <string.h>
 #include <stdlib.h>
 
+int idUserFile;
+char nameUserFile[MAX];
+char cpfUserFile[MAX];
+
 int getLastIdUser(FILE *userFile){
 	
-	int id = 0;
+	idUserFile = 0;
 	rewind(userFile);
-	while(fscanf(userFile, "%d '%*[^']' '%*[^']'\n", &id) != EOF);
-	return (id + 1);
+	while(fscanf(userFile, "%d '%*[^']' '%*[^']'\n", &idUserFile) != EOF);
+	return (idUserFile + 1);
 	
 }
 
-int isRegisteredUser(FILE *userFile, char cpf[]){
+int isRegisteredUser(FILE *userFile, char cpfUser[]){
 	
-	char cpfUser[MAX];
-	while(fscanf(userFile, "%*d '%*[^']' '%[^']'\n", cpfUser) != EOF){
-		if(!strcmp(cpfUser, cpf))
+	while(fscanf(userFile, "%*d '%*[^']' '%[^']'\n", cpfUserFile) != EOF){
+		if(!strcmp(cpfUserFile, cpfUser))
 			return 1;
 	}
 	return 0;
 	
 }
 
-void insertUser(FILE **userFile, char name[], char cpf[]){
+void insertUser(FILE *userFile, char nameUser[], char cpfUser[]){
 	
 	printf("\n");
-	*userFile = fopen("users.txt", "a+");
-	if(*userFile == NULL){
+	userFile = fopen("users.txt", "a+");
+	if(userFile == NULL){
 		printf("Erro na abertura do arquivo.\n");
 		return;
 	}
-	int id;
-	if(isRegisteredUser(*userFile, cpf)){
+	if(isRegisteredUser(userFile, cpfUser)){
 		printf("Usuario ja registrado.\n");
 		return;
 	}
-	id = getLastIdUser(*userFile);
-	fprintf(*userFile, "%d '%s' '%s'\n", id, name, cpf);
-	fclose(*userFile);
+	idUserFile = getLastIdUser(userFile);
+	fprintf(userFile, "%d '%s' '%s'\n", idUserFile, nameUser, cpfUser);
+	fclose(userFile);
 	printf("Usuario adicionado com sucesso.\n");
 	
 }
 
-void removeUser(FILE **userFile, int id){
+void removeUser(FILE *userFile, int idUser){
 	
 	printf("\n");
-	*userFile = fopen("users.txt", "r+");
-	if(*userFile == NULL){
+	userFile = fopen("users.txt", "r+");
+	if(userFile == NULL){
 		printf("Erro na abertura do arquivo.\n");
 		return;
 	}
@@ -60,17 +62,14 @@ void removeUser(FILE **userFile, int id){
 		printf("Erro na criacao arquivo temporario.\n");
 		return;
 	}
-	int idUser;
-	char name[MAX];
-	char cpf[CPF_MAX];
-	if(feof(*userFile)){
+	if(feof(userFile)){
 		printf("Nenhum usuario cadastrado.\n");
 		return;	
 	} 
 	int notFound = 1;
-	while(fscanf(*userFile, "%d '%[^']' '%[^']'\n", &idUser, name, cpf) != EOF){
-		if(idUser != id)
-			fprintf(userFileTemp, "%d '%s' '%s'\n", idUser, name, cpf);
+	while(fscanf(userFile, "%d '%[^']' '%[^']'\n", &idUserFile, nameUserFile, cpfUserFile) != EOF){
+		if(idUserFile != idUser)
+			fprintf(userFileTemp, "%d '%s' '%s'\n", idUserFile, nameUserFile, cpfUserFile);
 		else
 			notFound = 0;
 	}
@@ -78,7 +77,7 @@ void removeUser(FILE **userFile, int id){
 		printf("Usuario nao encontrado.\n");
 		return;	
 	}
-	fclose(*userFile);
+	fclose(userFile);
 	fclose(userFileTemp);
 	
 	if(remove("users.txt") != 0){
@@ -94,7 +93,7 @@ void removeUser(FILE **userFile, int id){
 	printf("Usuario removido com sucesso.\n");
 }
 
-void searchUser(FILE *userFile, char name[]){
+void searchUser(FILE *userFile, char nameUser[]){
 	
 	printf("\n");
 	userFile = fopen("users.txt", "r");
@@ -102,13 +101,10 @@ void searchUser(FILE *userFile, char name[]){
 		printf("Falha no acesso ao arquivo.\n");
 		return;
 	}
-	int id;
-	char nameUser[MAX];
-	char cpf[CPF_MAX];
 	int notFound = 1;
-	while(fscanf(userFile, "%d '%[^']' '%[^']'\n", &id, nameUser, cpf) != EOF){
-		if(strstr(nameUser, name) != NULL){
-			printf("%d -> %s / %s\n", id, nameUser, cpf);
+	while(fscanf(userFile, "%d '%[^']' '%[^']'\n", &idUserFile, nameUserFile, cpfUserFile) != EOF){
+		if(strstr(nameUserFile, nameUser) != NULL){
+			printf("%d -> %s / %s\n", idUserFile, nameUserFile, cpfUserFile);
 			notFound = 0;
 		}
 	}
@@ -125,12 +121,9 @@ void showUserFile(FILE *userFile){
 		printf("Falha no acesso ao arquivo.\n");
 		return;
 	}
-	int id;
-	char name[MAX];
-	char cpf[CPF_MAX];
 	printf("USUARIOS CADASTRADOS:\n");
-	while(fscanf(userFile, "%d '%[^']' '%[^']'\n", &id, name, cpf) != EOF){
-		printf("%d -> %s / %s\n", id, name, cpf);
+	while(fscanf(userFile, "%d '%[^']' '%[^']'\n", &idUserFile, nameUserFile, cpfUserFile) != EOF){
+		printf("%d -> %s / %s\n", idUserFile, nameUserFile, cpfUserFile);
 	}
 	fclose(userFile);
 	
