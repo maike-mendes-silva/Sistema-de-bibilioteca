@@ -11,6 +11,11 @@ void printHeader(){
 	printf("---- COMANDOS ----\n\n");
 }
 
+void clearBuffer(void){
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+}
+
 int main() {
 	
 	FILE *userFile;
@@ -26,6 +31,7 @@ int main() {
 		printf("Encerrar Programa ==> E\n\n");
 		printf("Digite o comando: ");
 		scanf(" %c", &op);
+		clearBuffer();
 		if(op == 'U'){
 			do{
 				printHeader();
@@ -45,21 +51,27 @@ int main() {
 					case 'C':
 						scanf(" '%50[^']' '%14[^']'", name, cpf);
 						insertUser(userFile, name, cpf);
+						clearBuffer();
 						break;
 					case 'R':
 						scanf(" %d", &id);
 						removeUser(userFile, id);
+						clearBuffer();
 						break;
 					case 'P':
 						scanf(" '%50[^']'", name);
 						searchUser(userFile, name);
+						clearBuffer();
 						break;
 					case 'M':
 						showUserFile(userFile);
+						clearBuffer();
 						break;
 					case 'S':
+						clearBuffer();
 						break;
 					default:
+						clearBuffer();
 						printf("\nComando inexistente.\n");
 						break;
 				}
@@ -93,37 +105,47 @@ int main() {
 					case 'C':
 						scanf(" '%50[^']' '%50[^']' %d '%15[^']' %d", nameBook, nameAuthor, &year, isbn, &copies);
 						insertBook(bookFile, nameBook, nameAuthor, year, isbn, copies);
+						clearBuffer();
 						break;
 					case 'A':
 						scanf(" %d %d", &id, &copies);
 						addCopies(bookFile, id, copies);
+						clearBuffer();
 						break;
 					case 'R':
 						scanf(" %d", &id);
 						removeBook(bookFile, id);
+						clearBuffer();
 						break;
 					case 'E':
 						scanf(" %d %d", &idUser, &id);
 						loanBook(bookFile, userFile, loanBookFile, idUser, id);
+						clearBuffer();
 						break;
 					case 'D':
 						scanf(" %d %d", &idUser, &id);
 						returnBook(loanBookFile, bookFile, idUser, id);
+						clearBuffer();
 						break;
 					case 'P':
 						scanf(" '%50[^']'", nameBook);
 						searchBook(bookFile, nameBook);
+						clearBuffer();
 						break;
 					case 'M':
 						showBookFile(bookFile);
+						clearBuffer();
 						break;
 					case 'L':
 						showLoanBookFile(loanBookFile);
+						clearBuffer();
 						break;
 					case 'S':
+						clearBuffer();
 						break;
 					default:
 						printf("\nComando inexistente.\n");
+						clearBuffer();
 						break;
 				}
 				printf("\nPressione qualquer letra para continuar...");
@@ -132,6 +154,7 @@ int main() {
 		} else if(op != 'E'){
 			printf("\nComando inexistente.\n");
 			printf("\nPressione qualquer letra para continuar...");
+			clearBuffer();
 			char c = getch();	
 		}			
 	} while(op != 'E');
