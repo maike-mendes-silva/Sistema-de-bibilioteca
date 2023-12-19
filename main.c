@@ -4,11 +4,16 @@
 #include "user.h"
 #include "book.h"
 
+#ifdef _WIN32
+    #define CLEAR_SCREEN "cls"
+#else
+    #define CLEAR_SCREEN "clear"
+#endif
+
 void printHeader(){
-	system("cls");
-	printf("====== SISTEMA DE GERENCIAMENTO DE BIBLIOTECA ======\n");
-	printf("Feito por: Maike Mendes Silva\n\n");
-	printf("---- COMANDOS ----\n\n");
+	system(CLEAR_SCREEN);
+	printf("====== LIBRASYS - SISTEMA DE GERENCIAMENTO ======\n");
+	printf("Desenvolvido por: Maike Mendes Silva\n\n");
 }
 
 void clearBuffer(void){
@@ -22,20 +27,22 @@ int main() {
 	FILE *bookFile;
 	FILE *loanBookFile;
 	
-	char op;
+	int op;
+	char exiting;
 	
 	do{	
 		printHeader();
-		printf("Menu Usuario ==> U\n");
-		printf("Menu Livro ==> L\n");
-		printf("Encerrar Programa ==> E\n\n");
-		printf("Digite o comando: ");
-		scanf(" %c", &op);
+		printf("---- MENU PRINCIPAL ----\n\n");
+		printf("1. Gerenciar Usuarios\n");
+		printf("2. Gerenciar Livros\n");
+		printf("3. Encerrar Programa\n\n");
+		printf("Digite o numero correspondente a opcao desejada: ");
+		scanf(" %d", &op);
 		clearBuffer();
-		if(op == 'U'){
+		if(op == 1){
 			do{
 				printHeader();
-				printf("MENU USUARIO:\n");
+				printf("---- MENU USUARIO ----\n\n");
 				printf("Cadastrar Usuario ==> C 'Nome' 'CPF'\n");
 				printf("Remover Usuario ==> R ID\n");
 				printf("Pesquisar Usuario(s) ==> P 'Nome'\n");
@@ -46,8 +53,8 @@ int main() {
 				int id;
 				char name[MAX];
 				char cpf[CPF_MAX];
-				scanf(" %c", &op);
-				switch(op){
+				scanf(" %c", &exiting);
+				switch(exiting){
 					case 'C':
 						scanf(" '%50[^']' '%14[^']'", name, cpf);
 						insertUser(userFile, name, cpf);
@@ -77,11 +84,11 @@ int main() {
 				}
 				printf("\nPressione qualquer letra para continuar...");
 				char c = getch();
-			} while(op != 'S');
-		} else if (op == 'L'){
+			} while(exiting != 'S');
+		} else if (op == 2){
 			do{
 				printHeader();
-				printf("MENU LIVRO:\n");
+				printf("---- MENU LIVRO ----\n\n");
 				printf("Cadastrar Livro ==> C 'Nome Livro' 'Nome Autor' Ano 'ISBN' Copias\n");
 				printf("Aumentar/Diminuir copias ==> A ID Copias\n");
 				printf("Remover Livro ==> R ID\n");
@@ -100,8 +107,8 @@ int main() {
 				int year;
 				char isbn[ISBN_MAX];
 				int copies;
-				scanf(" %c", &op);
-				switch(op){
+				scanf(" %c", &exiting);
+				switch(exiting){
 					case 'C':
 						scanf(" '%50[^']' '%50[^']' %d '%15[^']' %d", nameBook, nameAuthor, &year, isbn, &copies);
 						insertBook(bookFile, nameBook, nameAuthor, year, isbn, copies);
@@ -150,14 +157,14 @@ int main() {
 				}
 				printf("\nPressione qualquer letra para continuar...");
 				char c = getch();
-			} while(op != 'S');
-		} else if(op != 'E'){
+			} while(exiting != 'S');
+		} else if(op != 3){
 			printf("\nComando inexistente.\n");
 			printf("\nPressione qualquer letra para continuar...");
 			clearBuffer();
-			char c = getch();	
+			//char c = getch();	
 		}			
-	} while(op != 'E');
+	} while(op != 3);
 	
 	printf("\nPrograma finalizado.");
 	return 0;
