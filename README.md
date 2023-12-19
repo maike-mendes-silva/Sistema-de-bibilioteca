@@ -1,4 +1,4 @@
-#Sistema de Gerenciamento de uma Biblioteca
+# Sistema de Gerenciamento de uma Biblioteca
 
 O sistema desenvolvido possui funcionalidades relacionadas ao controle de usuários e livros cadastrados. Adicionalmente, funções que possibilitem o empréstimo e a devolução, tais como o a listagem dos mesmos. Toda cadastrado no sistema é salva localmente em txt's criados na pasta do projeto, logo os dados são salvos de maneira persistente.
 
