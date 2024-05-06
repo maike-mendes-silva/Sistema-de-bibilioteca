@@ -119,17 +119,18 @@ void searchUser(FILE *userFile, char nameUser[]){
 void showUserFile(FILE *userFile){
 	
 	printf("\n");
-	userFile = fopen("users.txt", "r");
+	userFile = fopen("users.txt", "a+");
 	if(userFile == NULL){
 		printf("Falha no acesso ao arquivo.\n");
 		return;
 	}
-	if(fgetc(userFile) == EOF){
+	fseek(userFile, 0, SEEK_END);
+	long fileSize = ftell(userFile);
+	if(fileSize == 0){
 		printf("Nenhum usuario cadastrado.\n");
-		fclose(userFile);
-		return;	
-	} 
-	rewind(userFile);
+		return;
+	}
+	fseek(userFile, 0, SEEK_SET);
 	printf("USUARIOS CADASTRADOS:\n");
 	while(fscanf(userFile, "%d '%[^']' '%[^']'\n", &idUserFile, nameUserFile, cpfUserFile) != EOF){
 		printf("%d -> %s / %s\n", idUserFile, nameUserFile, cpfUserFile);
